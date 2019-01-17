@@ -39,22 +39,20 @@ app.delete("/", (req, res) => {
   return res.send("Received a DELETE HTTP method\n");
 });
 
+// fake auth
+
+app.get("/session", (req, res) => {
+  return res.send(req.context.models.users[req.context.me.id]);
+});
+
 // user resource
 
 app.get("/users", (req, res) => {
-  return res.send(Object.values(users));
+  return res.send(Object.values(req.context.models.users));
 });
 
 app.get("/users/:userId", (req, res) => {
-  return res.send(users[req.params.userId]);
-});
-
-app.post("/users", (req, res) => {
-  return res.send("POST HTTP method on user resource\n");
-});
-
-app.put("/users/:userId", (req, res) => {
-  return res.send(`PUT HTTP method on user/${req.params.userId} resource\n`);
+  return res.send(req.context.models.users[req.params.userId]);
 });
 
 app.delete("/users/:userId", (req, res) => {
@@ -68,11 +66,11 @@ app.listen(process.env.PORT, () =>
 // messages resource
 
 app.get("/messages", (req, res) => {
-  return res.send(Object.values(messages));
+  return res.send(Object.values(req.context.models.messages));
 });
 
 app.get("/messages/:messageId", (req, res) => {
-  return res.send(messages[req.params.messageId]);
+  return res.send(req.context.models.messages[req.params.messageId]);
 });
 
 app.post("/messages", (req, res) => {
@@ -80,18 +78,21 @@ app.post("/messages", (req, res) => {
   const message = {
     id,
     text: req.body.text,
-    userId: req.me.id
+    userId: req.context.me.id
   };
 
-  messages[id] = message;
+  req.context.models.messages[id] = message;
 
   return res.send(message);
 });
 
 app.delete("/messages/:messageId", (req, res) => {
-  const { [req.params.messageId]: message, ...otherMessages } = messages;
+  const {
+    [req.params.messageId]: message,
+    ...otherMessages
+  } = req.context.models.messages;
 
-  messages = otherMessages;
+  req.context.models.messages = otherMessages;
 
   return res.send(message);
 });
