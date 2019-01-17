@@ -1,10 +1,14 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import uuidv4 from "uuid/v4";
+import bodyParser from "body-parser";
 
 const app = express();
 
 app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // root URI
 
@@ -60,6 +64,18 @@ app.get("/messages/:messageId", (req, res) => {
   return res.send(messages[req.params.messageId]);
 });
 
+app.post("/messages", (req, res) => {
+  const id = uuidv4();
+  const message = {
+    id,
+    text: req.body.text
+  };
+
+  messages[id] = message;
+
+  return res.send(message);
+});
+
 let users = {
   1: {
     id: "1",
@@ -83,3 +99,4 @@ let messages = {
     userId: "2"
   }
 };
+
