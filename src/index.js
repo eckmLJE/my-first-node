@@ -4,11 +4,22 @@ import cors from "cors";
 import uuidv4 from "uuid/v4";
 import bodyParser from "body-parser";
 
+import models from "./models";
+
 const app = express();
 
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// custom middleware
+
+app.use((req, res, next) => {
+  req.context = {
+    models,
+    me: models.users[1]
+  };
+});
 
 // root URI
 
@@ -68,7 +79,8 @@ app.post("/messages", (req, res) => {
   const id = uuidv4();
   const message = {
     id,
-    text: req.body.text
+    text: req.body.text,
+    userId: req.me.id
   };
 
   messages[id] = message;
@@ -76,27 +88,10 @@ app.post("/messages", (req, res) => {
   return res.send(message);
 });
 
-let users = {
-  1: {
-    id: "1",
-    username: "Robin Wieruch"
-  },
-  2: {
-    id: "2",
-    username: "Dave Davids"
-  }
-};
+app.delete("/messages/:messageId", (req, res) => {
+  const { [req.params.messageId]: message, ...otherMessages } = messages;
 
-let messages = {
-  1: {
-    id: "1",
-    text: "Hello World",
-    userId: "1"
-  },
-  2: {
-    id: "2",
-    text: "By World",
-    userId: "2"
-  }
-};
+  messages = otherMessages;
 
+  return res.send(message);
+});
